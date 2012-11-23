@@ -20,6 +20,15 @@ class aLinks_keyphraseParser{
 	static $single_parsed = 0;
 	static $probability = 0;
 	static $used_hrefs = array();
+	static $phrase_found = 0;
+	static $probability_array = array();
+	static $max_links = 0;
+	static $single_probability = 1;
+	static $probability_index = 0;
+	static $max_links_per_post = 1;
+	
+	static $total_parsed_per_post = 0;
+	
 	
 	
 	static function init(){
@@ -29,6 +38,7 @@ class aLinks_keyphraseParser{
 	
 	static function parse_keyPhrase($content){
 		self::$single_parsed = 0;
+		self::$total_parsed_per_post = 0;
 		
 		$keyPhrases = self::get_keyPhrases();					
 		
@@ -40,14 +50,25 @@ class aLinks_keyphraseParser{
 			
 			
 			$max_links = $global_settings['max_link_p_post'];
+			$max_links_per_post = $global_settings['max_link_p_post_bal'];
+			
+			if(!empty($max_links_per_post)){
+				self::$max_links_per_post = $max_links_per_post;
+			}
+			
 			$max_links_sitewise = $global_settings['max_links'];
 			$randomize = $global_settings['randomize'];
 			self::$probability = $global_settings['raw_url_percentage'];
+			self::$max_links = $max_links;
+			self::set_probability();		
+			
 			//var_dump(self::$probability);
+			
 			
 			if(!empty($randomize)){
 				$keyPhrases = self::shuffle_keyphrases($keyPhrases);
 			}
+			
 			
 			$is_unlimited = false;
 			$is_random = false;
@@ -69,32 +90,42 @@ class aLinks_keyphraseParser{
 				
 				self::$key = $key;				
 				$expression = self::get_regexExpression();								
-				$phrase_found = preg_match_all($expression, $content, $matches);							
+				$phrase_found = preg_match_all($expression, $content, $matches);
+				self::$phrase_found = $phrase_found;				
 				
 				$total_links = ($is_unlimited) ? 100 : $max_links;
 				
-				//var_dump($total_links);
+				
 				
 				if($phrase_found){					
 					
 					self::set_options($Phrases[0]);					
 					foreach($Phrases as $pno => $phrase){
 						if(self::$total_parsed < $max_links_sitewise) :
-							//if($link_replaced == $total_links) break;												
+																	
 							self::$keyPhrase = $phrase;
-							//$link = self::get_associate_link();
-						//	$content = preg_replace($expression, $link, $content, 1);
+														
+							if(isset(self::$probability_array[self::$probability_index])){
+								self::$single_probability = self::$probability_array[self::$probability_index];
+							}
+							else{
+								self::$single_probability = 1;
+							}
+							
 							$content = self::link_add_with_content($content, $link, $expression, $total_links);
 							//self::$single_parsed = 0;	
-							self::$total_parsed ++;	
+							
 						endif;			
 					}
 				}				
 				
+				self::$single_parsed = 0;
 			}		
 		endif;
 
 		self::$used_hrefs = array();
+		self::$probability_index = 0;
+		self::$probability_array = array();
 		return $content;
 	}
 	
@@ -103,35 +134,115 @@ class aLinks_keyphraseParser{
 	 * main functionality goes here
 	 * */
 	static function link_add_with_content($content, $link='', $regex, $total_links = 2){
-		if(self::$single_parsed == $total_links){
-			
+		
+		if(self::$total_parsed_per_post == self::$max_links_per_post){
+			return $content;
+		}
+		
+		if(self::$single_parsed == $total_links){			
 			return $content;
 		} 
 		
 	//	var_dump(self::$single_parsed);
 		
-		$link = self::get_associate_link();
+		$link = self::get_associate_link();		
 		
 		if(!$link){
 			return $content;
 		}
 		
+		//$phrase_found = preg_match_all($expression, $content, $matches);
+		
 		$new_content = preg_split($regex, $content);						
 		if(count($new_content) > 2){					
-			$index = count($new_content) - 2;
-			$rand = rand(0, $index);
-			$new_content[$rand] .= $link . $new_content[$rand+1];
-			self::$single_parsed ++;
+			//$index = count($new_content) - 2;
+			$rand = 1;
+			$new_content[$rand] .= $link . $new_content[$rand+1];			
 			unset($new_content[$rand+1]);
 			$content = implode(self::$key, $new_content);
-						
+			
+			self::$probability_index ++;			
+			self::$single_parsed ++;	
+			self::$total_parsed ++;	
+			self::$total_parsed_per_post ++;
+				
 			return self::link_add_with_content(implode(self::$key, $new_content), $link, $regex, $total_links);
 		}
 		else{
 			self::$single_parsed ++;
+			self::$probability_index ++;
+			self::$total_parsed ++;	
+			self::$total_parsed_per_post ++;
 			return preg_replace($regex, $link, $content, 1);
 		}
+		
 	}
+	
+	
+	
+	/*
+	 * ruturn the associate links using linksbuilder class
+	 * */
+	static function get_associate_link(){
+		$link_builder = new aLinks_linksbuilder();
+		$link_builder->set_ingredents(self::send_ingredents());		
+		$link = $link_builder->get_prepared_url();
+		return $link;
+	}
+	
+	
+	/*
+	 * set the probabilty
+	 * 
+	 * */
+	static function set_probability(){		
+		$probability = self::$probability;		
+		if($probability == 1){
+			for($i=1; $i<=40; $i++){
+				if(fmod($i, 4)){
+					self::$probability_array[] = 1;
+				}
+				else{
+					self::$probability_array[] = 0;
+				}
+			}					
+		}
+		
+		if($probability == 2){
+			for($i=1; $i<=40; $i++){
+				if(fmod($i, 2)){
+					self::$probability_array[] = 1;
+				}
+				else{
+					self::$probability_array[] = 0;
+				}
+			}	
+		}
+			
+		
+	}
+	
+	
+	
+	/*
+	 * send necessary parameters to the link builder
+	 * */
+	static function send_ingredents(){
+		$ingredents = array(
+			'keyphrase' => self::$keyPhrase->post_title,
+			'href' => get_post_meta(self::$keyPhrase->ID, aLinks_CustomPostTypes::metakey_link, true),
+			'title' => self::$keyPhrase->post_content,
+			'settings' => self::$options,
+			'exchange' => get_post_meta(self::$keyPhrase->ID, aLinks_CustomPostTypes::metakey_exchange, true),
+			'probability' => self::$probability											
+		);
+		
+		//var_dump($ingredents);
+		//die();
+		
+		return $ingredents;
+	}
+	
 	
 	
 	
@@ -204,35 +315,6 @@ class aLinks_keyphraseParser{
 	}
 	
 	
-	/*
-	 * ruturn the associate links using linksbuilder class
-	 * */
-	static function get_associate_link(){
-		$link_builder = new aLinks_linksbuilder();
-		$link_builder->set_ingredents(self::send_ingredents());		
-		$link = $link_builder->get_prepared_url();
-		return $link;
-	}
-	
-	
-	/*
-	 * send necessary parameters to the link builder
-	 * */
-	static function send_ingredents(){
-		$ingredents = array(
-			'keyphrase' => self::$keyPhrase->post_title,
-			'href' => get_post_meta(self::$keyPhrase->ID, aLinks_CustomPostTypes::metakey_link, true),
-			'title' => self::$keyPhrase->post_content,
-			'settings' => self::$options,
-			'exchange' => get_post_meta(self::$keyPhrase->ID, aLinks_CustomPostTypes::metakey_exchange, true),
-			'probability' => self::$probability											
-		);
-		
-		//var_dump($ingredents);
-		//die();
-		
-		return $ingredents;
-	}
 	
 	/*
 	 * set options

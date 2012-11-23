@@ -11,11 +11,21 @@
 	<form action="" method="post">
 		<input type="hidden" name="aLinks-options-save" value="Y" />
 		<table class="form-table">
+			
+			<tr>
+				<th> <label for="aLinks-maximumLinksperpost-bal"> Maximum Links Per Post</label> </th>
+				<td> <input type="text" name="aLinks-maximumLinksperpost-bal" id="aLinks-maximumLinksperpost-bal" value="<?php echo $options['max_link_p_post_bal'];?>" /> </td>
+				<td colspan="2"> <code> -1 is for the unlimited link</code> </td>
+			</tr>
+			
+			
 			<tr>
 				<th> <label for="aLinks-maximumLinksperpost"> Maximum Links Per Post Per keyPhrase</label> </th>
 				<td> <input type="text" name="aLinks-maximumLinksperpost" id="aLinks-maximumLinksperpost" value="<?php echo $options['max_link_p_post'];?>" /> </td>
 				<td colspan="2"> <code> -1 is for the unlimited link</code> </td>
 			</tr>
+			
+			
 			
 			<tr>
 				<th> <label for="aLinks-maximumLinks"> Maximum Links for a keyPhrase throughout the site</label> </th>

@@ -31,7 +31,9 @@ class aLinks_linksbuilder{
 	public function get_prepared_url(){
 		$link = $this->keyPhrase;	
 		
+		
 		if(in_array($this->href, aLinks_keyphraseParser::$used_hrefs)){
+						
 			return false;
 		}
 		else{
@@ -43,22 +45,21 @@ class aLinks_linksbuilder{
 		$raw_probability = $this->get_row_url_probability();
 		switch($this->option){
 			case "1" :
-				if($raw_probability == 1){
-					//$link = $this->keyPhrase . ' ' . "<a href='$this->href'>$this->href</a>";
+				if($raw_probability == 1){					
 					$link = '<a href="' . $this->href . '"> ' . $this->keyPhrase . '</a>';
 				}
-				else{
-					//$link = '<a href="' . $this->href . '"> ' . $this->keyPhrase . '</a>';
+				else{					
 					$link = $this->keyPhrase . ' ' . "<a href='$this->href'>$this->href</a>";
 				}
 				break;
 				
 			case "3" :
 				if($raw_probability == 1){
-					$link = $this->exchange . ' ' . "<a href='$this->href'>$this->href</a>";
+					$link = '<a href="' . $this->href . '"> ' . $this->exchange . '</a>';
+					
 				}
 				else{
-					$link = '<a href="' . $this->href . '"> ' . $this->exchange . '</a>';
+					$link = $this->exchange . ' ' . "<a href='$this->href'>$this->href</a>";
 				}
 				break;			
 							
@@ -101,21 +102,6 @@ class aLinks_linksbuilder{
 	 * sanitize the probability
 	 * */
 	private function get_row_url_probability(){
-		
-		//var_dump($this->probability);
-		//exit;
-		
-		if($this->probability == 1){
-			$array = array(1, 1, 0, 1);
-			return $array[rand(0, 3)];
-		}		
-		elseif($this->probability == 2){
-			$array = array(1, 0, 1, 0);
-			return $array[rand(0, 3)];
-		}
-		else{
-			return 0;
-		}
-		
+		return aLinks_keyphraseParser::$single_probability;	
 	}
 }

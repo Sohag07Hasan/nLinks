@@ -216,7 +216,8 @@ class aLinks_CustomPostTypes{
 				'max_link_p_post' => empty($_POST['aLinks-maximumLinksperpost']) ? 1 : $_POST['aLinks-maximumLinksperpost'],
 				'randomize' => $_POST['aLinks-radomizeLinks'],
 				'raw_url_percentage' => $_POST['aLinks-rowurl-percentage'],
-				'max_links' => trim($_POST['aLinks-maximumLinks'])
+				'max_links' => trim($_POST['aLinks-maximumLinks']),
+				'max_link_p_post_bal' => empty($_POST['aLinks-maximumLinksperpost-bal']) ? 1 : trim($_POST['aLinks-maximumLinksperpost-bal'])
 			);
 			update_option(self::global_options_key, $new_options);
 		endif;
