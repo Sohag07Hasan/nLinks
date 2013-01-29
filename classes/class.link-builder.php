@@ -43,23 +43,24 @@ class aLinks_linksbuilder{
 		//var_dump(aLinks_keyphraseParser::$used_hrefs);
 		
 		$raw_probability = $this->get_row_url_probability();
+		//var_dump($raw_probability . ' ' . $this->option . ' ' . $this->href . ' ' . $this->keyPhrase);
 		switch($this->option){
 			case "1" :
 				if($raw_probability == 1){					
-					$link = '<a href="' . $this->href . '"> ' . $this->keyPhrase . '</a>';
+					$link = '<a title="'.$this->title.'" href="' . $this->href . '"> ' . $this->keyPhrase . '</a>';
 				}
 				else{					
-					$link = $this->keyPhrase . ' ' . "<a href='$this->href'>$this->href</a>";
+					$link = $this->keyPhrase . ' ' . "<a title='$this->title' href='$this->href'>$this->href</a>";
 				}
 				break;
 				
 			case "3" :
 				if($raw_probability == 1){
-					$link = '<a href="' . $this->href . '"> ' . $this->exchange . '</a>';
+					$link = '<a title="'.$this->title.'" href="' . $this->href . '"> ' . $this->exchange . '</a>';
 					
 				}
 				else{
-					$link = $this->exchange . ' ' . "<a href='$this->href'>$this->href</a>";
+					$link = $this->exchange . ' ' . "<a title='$this->title' href='$this->href'>$this->href</a>";
 				}
 				break;			
 							
@@ -93,8 +94,9 @@ class aLinks_linksbuilder{
 		$this->exchange = $this->link_ingredents['exchange'];
 	}
 	
-	private function set_probability(){
+	private function set_probability(){		
 		$this->probability = $this->link_ingredents['probability'];
+		//var_dump($this->probability);
 	}
 	
 	

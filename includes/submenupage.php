@@ -1,6 +1,6 @@
 <div class="wrap">
 	<?php screen_icon('options-general'); ?>
-	<h2>Global Settings for aLinks</h2>
+	<h2>Global Settings for nLinks</h2>
 	
 	<?php 
 		if($_POST['aLinks-options-save'] == "Y"):
@@ -20,7 +20,7 @@
 			
 			
 			<tr>
-				<th> <label for="aLinks-maximumLinksperpost"> Maximum Links Per Post Per keyPhrase</label> </th>
+				<th> <label for="aLinks-maximumLinksperpost"> Maximum Links Per Post Per KeyPhrase</label> </th>
 				<td> <input type="text" name="aLinks-maximumLinksperpost" id="aLinks-maximumLinksperpost" value="<?php echo $options['max_link_p_post'];?>" /> </td>
 				<td colspan="2"> <code> -1 is for the unlimited link</code> </td>
 			</tr>
@@ -28,7 +28,7 @@
 			
 			
 			<tr>
-				<th> <label for="aLinks-maximumLinks"> Maximum Links for a keyPhrase throughout the site</label> </th>
+				<th> <label for="aLinks-maximumLinks"> Maximum Links for a KeyPhrase throughout the site</label> </th>
 				<td> <input type="text" name="aLinks-maximumLinks" id="aLinks-maximumLinks" value="<?php echo $options['max_links'];?>" /> </td>
 				<td colspan="2"> <code> -1 is for the unlimited link</code> </td>
 			</tr>
@@ -36,21 +36,29 @@
 			<tr>
 				<th> <label for="aLinks-radomizeLinks"> Want to randomize the links?</label> </th>
 				<td> <input <?php checked('Y', $options['randomize']); ?> type="checkbox" name="aLinks-radomizeLinks" value="Y"> </td>
-				<td colspan="2"> <code> it will randomize the same matched keyphrases around a single post" </code> </td>
+				<td colspan="2"> <code> Select this option to randomize the position links within a posts if mulitple links are associated with a single KeyPhrase </code> </td>
 			</tr>
 			
-			<tr> <td><h4> Probability of Row URL  </h4></td> </tr>
+			<tr> <td><h4> Raw URL Link Settings  </h4> </td> </tr>
 			
 			<tr>
-				<th> <lable for="aLinks-rowurl-percentage"></lable> Probability(%) </th>
+				<td> Select a type </td>
 				<td> 
-					<select name="aLinks-rowurl-percentage">
-						<option <?php selected("0", $options['raw_url_percentage']); ?> value="0">None</option>
-						<option <?php selected("1", $options['raw_url_percentage']); ?> value="1">25%</option>
-						<option <?php selected("2", $options['raw_url_percentage']); ?> value="2">50%</option>
-					</select> 
+					<select name="type">
+						<option <?php selected('1', $options['type']); ?> value="1">hours</option>
+						<option <?php selected('2', $options['type']); ?> value="2">days</option>
+						<option <?php selected('3', $options['type']); ?> value="3">minutes</option>
+					</select>
 				</td>
-				<td colspan="2"> <code>Add Raw URL beside the keyphrase</code> </td>
+			</tr>
+			
+			<tr>
+				
+				<td colspan = "3"> 
+					<p><input <?php checked('2', $options['even']);?> id="nLinks_raw_url_even" type="checkbox" name="nLinks_raw_url_even" value="2" /> <label for="nLinks_raw_url_even"> Even </label> (<code>Creates Raw URL links on even intervals</code>) </p>
+					<p> <input <?php checked('1', $options['odd']);?> id="nLinks_raw_url_odd" type="checkbox" name="nLinks_raw_url_odd" value="1" /> <label for="nLinks_raw_url_odd"> Odd  </label> (<code>Creates Raw URL links on odd intervals</code>)</p>
+				</td>
+				
 			</tr>
 			
 			<tr>

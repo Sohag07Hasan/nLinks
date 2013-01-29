@@ -1,12 +1,12 @@
 <?php 
 
 /**
-Plugin Name: Natural Link Manager
-Plugin URI: http://alinks.headzoo.com
-Description: A WordPress plugin that automatically links keywords in your blog post.
-Author: Sohag
-Version: 1.0.1
-Author URI: http://www.headzoo.com
+Plugin Name: nLinks
+Plugin URI: www.MarketingBurst.com
+Description: Automatically create links for keywords found within posts. Set natural parameters to boost up the value of links within individual posts and for the blog as a whole.
+Author: Spaxton1
+Version: 2.0.1
+Author URI: www.MarketingBurst.com
 */
 
 define("aLinks_FILE", __FILE__);

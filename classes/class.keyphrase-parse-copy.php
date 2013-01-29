@@ -38,22 +38,23 @@ class aLinks_keyphraseParser{
 	static function init(){
 		add_filter('the_content', array(get_class(), 'parse_keyPhrase'));
 		register_activation_hook(aLinks_FILE, array(get_class(), 'activate_the_plugin'));
-		
+		self::set_probability();
 	}
 	
 	static function parse_keyPhrase($content){
 		self::$single_parsed = 0;
 		self::$total_parsed_per_post = 0;
 		
-		self::set_probability();
-				
 		$keyPhrases = self::get_keyPhrases();					
 		
 		if(!empty($keyPhrases)) :
 			
-			$global_settings = self::get_global_options();								
+			$global_settings = self::get_global_options();
 			
-			$max_links_per_key = $global_settings['max_link_p_post'];
+			//var_dump($global_settings);
+			
+			
+			$max_links = $global_settings['max_link_p_post'];
 			$max_links_per_post = $global_settings['max_link_p_post_bal'];
 			
 			if(!empty($max_links_per_post)){
@@ -63,12 +64,14 @@ class aLinks_keyphraseParser{
 			$max_links_sitewise = $global_settings['max_links'];
 			$randomize = $global_settings['randomize'];
 			self::$probability = $global_settings['raw_url_percentage'];
-			self::$max_links = $max_links_per_key;
-
-			//var_dump($keyPhrases);
+			self::$max_links = $max_links;
+					
+			
+			//var_dump(self::$probability);
+			
+			
 			if(!empty($randomize)){
 				$keyPhrases = self::shuffle_keyphrases($keyPhrases);
-				//var_dump($keyPhrases);
 			}
 			
 			
@@ -76,7 +79,7 @@ class aLinks_keyphraseParser{
 			$is_random = false;
 			
 			
-			if($max_links_per_key == -1){
+			if($max_links == -1){
 				$is_unlimited = true;
 			}
 			
@@ -96,16 +99,33 @@ class aLinks_keyphraseParser{
 				$phrase_found = preg_match_all($expression, $content, $matches);
 				self::$phrase_found = $phrase_found;				
 				
-				$total_links = ($is_unlimited) ? 100 : $max_links_per_key;				
+				$total_links = ($is_unlimited) ? 100 : $max_links;
+				
 				
 				
 				if($phrase_found){					
 					
 					self::set_options($Phrases[0]);					
 					foreach($Phrases as $pno => $phrase){
-						self::$keyPhrase = $phrase;
 						if(self::$total_parsed < $max_links_sitewise) :
-							$content = self::link_add_with_content($content, $link, $expression, $total_links);														
+																	
+							self::$keyPhrase = $phrase;
+							
+							/*
+														
+							if(isset(self::$probability_array[self::$probability_index])){
+								self::$single_probability = self::$probability_array[self::$probability_index];
+							}
+							else{
+								self::$single_probability = 1;
+							}
+							*/
+							
+							self::$single_probability = self::$keywords_random_array[self::$key][self::$keywords_random_key[self::$key]];
+							
+							$content = self::link_add_with_content($content, $link, $expression, $total_links);
+							//self::$single_parsed = 0;	
+							
 						endif;			
 					}
 				}				
@@ -115,6 +135,8 @@ class aLinks_keyphraseParser{
 		endif;
 
 		self::$used_hrefs = array();
+		//self::$probability_index = 0;
+		//self::$probability_array = array();
 		return $content;
 	}
 	
@@ -122,7 +144,7 @@ class aLinks_keyphraseParser{
 	/*
 	 * main functionality goes here
 	 * */
-	static function link_add_with_content($content, $link='', $regex, $total_links = 1){
+	static function link_add_with_content($content, $link='', $regex, $total_links = 2){
 		
 		if(self::$total_parsed_per_post == self::$max_links_per_post){
 			return $content;
@@ -134,8 +156,7 @@ class aLinks_keyphraseParser{
 		
 	//	var_dump(self::$single_parsed);
 		
-		$link = self::get_associate_link();
-		//var_dump($link);		
+		$link = self::get_associate_link();		
 		
 		if(!$link){
 			return $content;
@@ -151,8 +172,10 @@ class aLinks_keyphraseParser{
 			unset($new_content[$rand+1]);
 			$content = implode(self::$key, $new_content);
 			
-		//	self::$probability_index ++;
-					
+			//self::$probability_index ++;
+			self::$keywords_random_key[self::$key] ++ ;
+
+			
 			self::$single_parsed ++;	
 			self::$total_parsed ++;	
 			self::$total_parsed_per_post ++;
@@ -162,7 +185,8 @@ class aLinks_keyphraseParser{
 		else{
 			self::$single_parsed ++;
 			//self::$probability_index ++;
-						
+			self::$keywords_random_key[self::$key] ++ ;	
+			
 		//	var_dump(self::$keywords_random_key[self::$key]); die();
 			
 			self::$total_parsed ++;	
@@ -191,40 +215,48 @@ class aLinks_keyphraseParser{
 	 * */
 	static function set_probability(){
 		$global_settings = self::get_global_options();
-		global $post;
-		$date = strtotime($post->post_date);
+		$max_links_sitewise = $global_settings['max_links'];
 		
-		if($global_settings['type'] == 2){
-			$type = 'd';
-		}
-		elseif($global_settings['type'] == 3){
-			$type = 'i';
-		}
-		else{
-			$type = 'h';
+		if(empty($max_links_sitewise) || $max_links_sitewise == -1){
+			$max_links_sitewise = 1000;
 		}
 		
-		$hour = date($type, $date);
+		$max_links_per_keyword = 100;
 		
-	//	var_dump($hour . ' ' . $type);
+		$probability = $global_settings['raw_url_percentage'];
 		
-		self::$single_probability = 1;
-		
-		//var_dump(self::$single_probability);
-		
-		if(fmod($hour, 2) == 0){
-			if($global_settings['even'] == 2){
-				self::$single_probability = 2;
-			}
-		}
-		else{
-		if($global_settings['odd'] == 1){
-				self::$single_probability = 2;
-			}
+		if($probability == 1){
+			for($i=1; $i<=$max_links_per_keyword; $i++){
+				if(fmod($i, 4)){
+					self::$probability_array[] = 1;
+				}
+				else{
+					self::$probability_array[] = 0;
+				}
+			}					
 		}
 		
-		//var_dump(self::$single_probability);
-				
+		if($probability == 2){
+			for($i=1; $i<=$max_links_per_keyword; $i++){
+				if(fmod($i, 2)){
+					self::$probability_array[] = 1;
+				}
+				else{
+					self::$probability_array[] = 0;
+				}
+			}	
+		}
+			
+		$keyPhrases = self::get_keyPhrases();
+		
+		if(empty($keyPhrases)) return;
+		
+		foreach($keyPhrases as $key => $phrase){
+			self::$keywords_random_array[$key] = self::$probability_array;
+			self::$keywords_random_key[$key] = 0;
+		}
+		
+		//var_dump(self::$keywords_random_array); die();
 	}
 	
 	
@@ -233,14 +265,13 @@ class aLinks_keyphraseParser{
 	 * send necessary parameters to the link builder
 	 * */
 	static function send_ingredents(){
-		self::$options;
 		$ingredents = array(
 			'keyphrase' => self::$keyPhrase->post_title,
 			'href' => get_post_meta(self::$keyPhrase->ID, aLinks_CustomPostTypes::metakey_link, true),
 			'title' => self::$keyPhrase->post_content,
 			'settings' => self::$options,
 			'exchange' => get_post_meta(self::$keyPhrase->ID, aLinks_CustomPostTypes::metakey_exchange, true),
-			'probability' => self::$single_probability										
+			'probability' => self::$probability											
 		);
 		
 		//var_dump($ingredents);
@@ -344,9 +375,8 @@ class aLinks_keyphraseParser{
 				'max_link_p_post' => 2,
 				'randomize' => "Y",				
 				'max_links' => "-1",
-				'raw_url_percentage' => 2,
-				'max_link_p_post_bal' => 2
+				'raw_url_percentage' => 2
 		);
-		update_option(self::global_options_key, $new_options);
+			update_option(self::global_options_key, $new_options);
 	}
 }
